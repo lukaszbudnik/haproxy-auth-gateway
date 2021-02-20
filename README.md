@@ -1,4 +1,4 @@
-# haproxy-auth-gateway
+# haproxy-auth-gateway ![Docker Hub](https://img.shields.io/docker/cloud/build/lukasz/haproxy-auth-gateway) ![Docker](https://github.com/lukaszbudnik/haproxy-auth-gateway/workflows/Docker%20Image%20CI/badge.svg)
 
 haproxy-auth-gateway is an authentication and authorization gateway for cloud native apps.
 
