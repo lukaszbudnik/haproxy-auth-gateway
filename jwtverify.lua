@@ -180,7 +180,6 @@ function jwtverify(txn)
       txn.set_var(txn, "txn.realm_roles", roles)
     else
       log("No realm access in token.")
-      goto out
     end
 
     -- 8. Set authorized variable
