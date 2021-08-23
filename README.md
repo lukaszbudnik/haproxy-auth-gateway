@@ -6,7 +6,7 @@ haproxy-auth-gateway features are:
 
 - parsing JWT token from the HTTP Authorization header
 - Keycloak realm roles support
-- RS256 signature verification
+- RS256, HS256, HS512 signature verification
 - expiration time verification
 - issuer verification
 - audience verification
@@ -33,21 +33,21 @@ The below example shows how to deploy & configure `lukasz/haproxy-auth-gateway` 
 
 ## Kubernetes deployment
 
-haproxy-auth-gateway needs to have:
+haproxy-auth-gateway requires:
 
 - your haproxy config (_file_)
 - public key of the JWT issuer (_file_)
 - `OAUTH_PUBKEY_PATH` set to the path of the public key of the JWT issuer (_env variable_)
 - `OAUTH_ISSUER` and `OAUTH_AUDIENCE` are optional should you want a more fine-grained JWT verification (_env variable_)
 
-We can create haproxy config and public key files as config maps:
+You can create haproxy config and public key files as config maps:
 
 ```bash
 kubectl create configmap haproxy-auth-gateway-iss-cert --from-file=config/hotel.pem
 kubectl create configmap haproxy-auth-gateway-haproxy-cfg --from-file=config/haproxy.cfg
 ```
 
-Then we can map them to volumes and then mount them into haproxy-auth-gateway container. In the container spec we also set the env variables:
+Then you can map them to volumes and then mount them into haproxy-auth-gateway container. In the container spec you also set the env variables:
 
 ```yaml
 apiVersion: apps/v1
@@ -179,7 +179,7 @@ ewIDAQAB
 haproxy-auth-gateway will verify the above JWT correctly and will:
 
 - set `txn.authorized` variable to `true`
-- set `txn.realm_roles` variable to a comma separated list of `realm_access.roles`
+- set `txn.roles` variable to a comma separated list of `realm_access.roles`
 
 Later above variables can be used in haproxy ACLs, for example:
 
@@ -191,11 +191,23 @@ http-request lua.jwtverify
 # check if authorized successfully
 http-request deny unless { var(txn.authorized) -m bool }
 # check roles
-http-request deny if PATH_camarero ! { var(txn.realm_roles) -m sub camarero }
+http-request deny if PATH_camarero ! { var(txn.roles) -m sub camarero }
+```
+
+# Troubleshooting
+
+The script outputs many useful debug messages. To enable debug add the following configuration to you `haproxy.cfg`:
+
+```
+global
+    log stdout local0 debug
+
+defaults
+    log global
 ```
 
 # Original project
 
-haproxy-auth-gateway is based on great project from haproxytech folks: https://github.com/haproxytech/haproxy-lua-jwt
+haproxy-auth-gateway is based on great project from haproxytech folks: https://github.com/haproxytech/haproxy-lua-oauth
 
 haproxy-auth-gateway contains changes to support Keycloak realm roles out of the box.
